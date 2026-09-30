@@ -1,29 +1,17 @@
 # __init__.py
-"""ESPHome component entry point for NSPanel Easy.
+"""ESPHome component entry point for NSPanel Easy."""
 
-Registers the ``NSPanelEasyComponent`` C++ class with the ESPHome build
-system, validates the user-supplied YAML configuration, and emits the
-corresponding C++ code and ESP-IDF sdkconfig options during code generation.
-
-Supported configuration keys
------------------------------
-- ``psram_clk_pin``            - GPIO number for the PSRAM clock signal.
-- ``psram_cs_pin``             - GPIO number for the PSRAM chip-select signal.
-- ``require_disarm_before_rearm`` - Gate re-arm on an explicit disarm first.
-- ``on_setup``                 - Automation trigger fired once on device setup.
-- ``on_dump_config``           - Automation trigger fired on config dump.
-"""
+import logging
 
 from esphome import automation
-from esphome import pins
+import esphome.codegen as cg
+import esphome.config_validation as cv
 from esphome.components import globals as globals_component
 from esphome.components import nextion, text_sensor
 from esphome.components.esp32 import add_idf_sdkconfig_option
-from esphome.const import (CONF_ID, CONF_TRIGGER_ID)
+from esphome.const import CONF_ID, CONF_TRIGGER_ID
 from esphome.core import CORE, coroutine_with_priority
-import esphome.codegen as cg
-import esphome.config_validation as cv
-import logging
+from esphome import pins
 
 CODEOWNERS = ["@edwardtfn"]
 
@@ -61,33 +49,17 @@ CONFIG_SCHEMA = cv.Schema({
         },
     ),
     cv.Required(CONF_UNITS_SEPARATOR_ID): cv.use_id(globals_component.GlobalsComponent),
-    # cv.Optional(PSRAM_CLK_PIN): pins.internal_gpio_output_pin_number,
-    # cv.Optional(PSRAM_CS_PIN): pins.internal_gpio_output_pin_number,
 
-    cv.Optional(CONF_PSRAM_CLK_PIN): pins.gpio_output_pin_schema,
-    cv.Optional(CONF_PSRAM_CS_PIN): pins.gpio_output_pin_schema,
-    
+    # Rein optionale Pin-Nummern ohne Strapping-Pin Schema-Zwang
+    cv.Optional(PSRAM_CLK_PIN): pins.internal_gpio_output_pin_number,
+    cv.Optional(PSRAM_CS_PIN): pins.internal_gpio_output_pin_number,
+
     cv.Optional(REQUIRE_DISARM_BEFORE_REARM): cv.boolean,
 })
 
 
 @coroutine_with_priority(1.0)
 async def to_code(config):
-    """Generate C++ code and sdkconfig options for the NSPanel Easy component.
-
-    This coroutine is called by the ESPHome code-generation pipeline.  It:
-
-    - Instantiates the ``NSPanelEasyComponent`` C++ object and registers it as an ESPHome component.
-    - Wires up any ``on_setup`` / ``on_dump_config`` automation triggers declared in the configuration.
-    - Emits a deprecation warning when the Arduino framework is in use.
-    - Forwards optional PSRAM pin settings to the ESP-IDF sdkconfig.
-    - Defines ``USE_REQUIRE_DISARM_BEFORE_REARM`` when requested
-    - Unconditionally defines ``USE_NSPANEL_EASY`` plus the global ``esphome::nspanel_easy`` namespace alias.
-
-    Args:
-        config: Validated configuration dictionary produced by
-                :data:`CONFIG_SCHEMA`.
-    """
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 
@@ -112,10 +84,10 @@ async def to_code(config):
     disp = await cg.get_variable(config[CONF_NEXTION_ID])
     cg.add(cg.RawStatement(f"esphome::nspanel_easy::nextion_display = {disp};"))
 
-    # Arduino framework deprecation warning
     if CORE.using_arduino:
         _LOGGER.warning("Arduino framework deprecated. Migrate to ESP-IDF.")
 
+    # Nur anwenden, wenn es explizit definiert wurde (D0WD-spezifisch für altes NSPanel)
     if PSRAM_CLK_PIN in config:
         clk_pin = config[PSRAM_CLK_PIN]
         add_idf_sdkconfig_option("CONFIG_D0WD_PSRAM_CLK_IO", clk_pin)
