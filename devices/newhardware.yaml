@@ -34,8 +34,7 @@ substitutions:
 
   # ESP32-S3 adaptations
   esp32_minimum_chip_revision: ""
-  GPIO_PSRAM_CLK_PIN: "5"
-  GPIO_PSRAM_CS_PIN: "18"
+  include_d0wd_psram_pins: false
 
 esphome:
   name: ${name}
@@ -56,6 +55,7 @@ packages:
   remote_package:
     url: https://github.com/markuserlacher/NSPanel-Easy
     ref: main
+    refresh: 0s
     files:
       - nspanel_esphome.yaml
 
@@ -70,11 +70,6 @@ api:
 
 wifi:
   output_power: 12dB
-
-ota:
-  - platform: esphome
-    id: ota_esphome_1
-    password: ${ota_password}
 
 # Resistor override (not covered by substitution)
 sensor:
