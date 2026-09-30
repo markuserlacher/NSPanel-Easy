@@ -25,9 +25,15 @@ substitutions:
       framework:
         advanced:
           minimum_chip_revision: ${esp32_minimum_chip_revision}
+  include_d0wd_psram_pins: true
+  _pkg_d0wd_psram_pins:
+    nspanel_easy:
+      psram_clk_pin: ${GPIO_PSRAM_CLK_PIN}
+      psram_cs_pin: ${GPIO_PSRAM_CS_PIN}
 
 packages:
   esp32_advanced: ${ _pkg_esp32_advanced if esp32_minimum_chip_revision != "" else {} }
+  d0wd_psram_pins: ${ _pkg_d0wd_psram_pins if include_d0wd_psram_pins else {} }
 
 button:
   - id: bt_factory_reset
@@ -43,10 +49,6 @@ esphome:
 factory_reset:
   resets_required: 10
   max_delay: 10s
-
-nspanel_easy:
-  psram_clk_pin: ${GPIO_PSRAM_CLK_PIN}
-  psram_cs_pin: ${GPIO_PSRAM_CS_PIN}
 
 psram:
   id: ext_ram
