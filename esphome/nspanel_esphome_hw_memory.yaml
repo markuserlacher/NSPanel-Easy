@@ -19,6 +19,15 @@ substitutions:
   WIFI_USE_PSRAM: true
   memory_dump_details: false
   MEMORY_DUMP_DETAILS_: ${ 1 if memory_dump_details else 0 }
+  esp32_minimum_chip_revision: "3.0"
+  _pkg_esp32_advanced:
+    esp32:
+      framework:
+        advanced:
+          minimum_chip_revision: ${esp32_minimum_chip_revision}
+
+packages:
+  esp32_advanced: ${ _pkg_esp32_advanced if esp32_minimum_chip_revision != "" else {} }
 
 button:
   - id: bt_factory_reset
@@ -26,11 +35,6 @@ button:
     platform: factory_reset
     disabled_by_default: true
     internal: false
-
-esp32:
-  framework:
-    advanced:
-      minimum_chip_revision: "3.0"
 
 esphome:
   build_flags:
