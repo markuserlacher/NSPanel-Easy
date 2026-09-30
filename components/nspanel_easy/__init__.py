@@ -61,8 +61,12 @@ CONFIG_SCHEMA = cv.Schema({
         },
     ),
     cv.Required(CONF_UNITS_SEPARATOR_ID): cv.use_id(globals_component.GlobalsComponent),
-    cv.Optional(PSRAM_CLK_PIN): pins.internal_gpio_output_pin_number,
-    cv.Optional(PSRAM_CS_PIN): pins.internal_gpio_output_pin_number,
+    # cv.Optional(PSRAM_CLK_PIN): pins.internal_gpio_output_pin_number,
+    # cv.Optional(PSRAM_CS_PIN): pins.internal_gpio_output_pin_number,
+
+    cv.Optional(CONF_PSRAM_CLK_PIN): pins.gpio_output_pin_schema,
+    cv.Optional(CONF_PSRAM_CS_PIN): pins.gpio_output_pin_schema,
+    
     cv.Optional(REQUIRE_DISARM_BEFORE_REARM): cv.boolean,
 })
 
